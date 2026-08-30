@@ -1,5 +1,6 @@
 {
     "identity_mode": "player",
+    "auto_vote_for_managed_bots": false,
     "fake_ping": {
         "enabled": true,
         "min": 20,

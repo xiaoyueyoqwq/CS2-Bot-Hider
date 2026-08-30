@@ -9,6 +9,7 @@ using CounterStrikeSharp.API.Modules.Memory;
 using CounterStrikeSharp.API.Modules.Timers;
 using CounterStrikeSharp.API.Modules.Utils;
 using HarmonyLib;
+using System.Text.Json;
 
 namespace BotHiderImpl;
 
@@ -31,9 +32,12 @@ public class BotHiderImplPlugin : BasePlugin
     private CounterStrikeSharp.API.Modules.Timers.Timer? _fastApplyTimer;
     private int _fastApplyRemaining;
     private Harmony? _harmony;
+    private bool _autoVoteForManagedBots = true;
 
     public override void Load(bool hotReload)
     {
+        LoadVoteConfiguration();
+
         // Inject the visible-write actions so SetPersonaName / SetBotSteamId
         // also update the scoreboard
         _client = new SharedMemoryClient(
@@ -125,6 +129,9 @@ public class BotHiderImplPlugin : BasePlugin
     [GameEventHandler]
     public HookResult OnVoteOptions(EventVoteOptions @event, GameEventInfo info)
     {
+        if (!_autoVoteForManagedBots || _client == null)
+            return HookResult.Continue;
+
         Server.NextFrame(AcceptVoteForManagedBots);
         return HookResult.Continue;
     }
@@ -132,7 +139,7 @@ public class BotHiderImplPlugin : BasePlugin
     // Casts a yes vote from every valid managed bot
     private void AcceptVoteForManagedBots()
     {
-        if (_client == null) return;
+        if (!_autoVoteForManagedBots || _client == null) return;
 
         var voteController = Utilities
             .FindAllEntitiesByDesignerName<CVoteController>("vote_controller")
@@ -173,6 +180,51 @@ public class BotHiderImplPlugin : BasePlugin
         Utilities.SetStateChanged(
             voteController, "CVoteController", "m_nVoteOptionCount");
         Server.PrintToConsole($"[BotHider] automatic yes votes cast={accepted}");
+    }
+
+    // Reads the shared BotHider config used by the native module.
+    private void LoadVoteConfiguration()
+    {
+        _autoVoteForManagedBots = true;
+        string configPath = Path.Combine(Server.GameDirectory, "csgo", "addons", "BotHider", "config.json");
+        if (!File.Exists(configPath))
+        {
+            Server.PrintToConsole($"[BotHider] vote config missing: {configPath}; auto_vote_for_managed_bots=true");
+            return;
+        }
+
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(File.ReadAllText(configPath));
+            JsonElement root = document.RootElement;
+            if (root.ValueKind != JsonValueKind.Object)
+            {
+                Server.PrintToConsole("[BotHider] warning: config.json root is not an object; auto vote enabled");
+                return;
+            }
+
+            if (root.TryGetProperty("auto_vote_for_managed_bots", out JsonElement value))
+            {
+                if (value.ValueKind == JsonValueKind.True || value.ValueKind == JsonValueKind.False)
+                    _autoVoteForManagedBots = value.GetBoolean();
+                else
+                    Server.PrintToConsole("[BotHider] warning: auto_vote_for_managed_bots must be boolean; auto vote enabled");
+            }
+        }
+        catch (JsonException e)
+        {
+            Server.PrintToConsole($"[BotHider] warning: config.json parse error ({e.Message}); auto vote enabled");
+        }
+        catch (IOException e)
+        {
+            Server.PrintToConsole($"[BotHider] warning: config.json read failed ({e.Message}); auto vote enabled");
+        }
+        catch (UnauthorizedAccessException e)
+        {
+            Server.PrintToConsole($"[BotHider] warning: config.json access denied ({e.Message}); auto vote enabled");
+        }
+
+        Server.PrintToConsole($"[BotHider] auto_vote_for_managed_bots={_autoVoteForManagedBots}");
     }
 
     // Respawn any managed bot that is not alive

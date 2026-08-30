@@ -220,6 +220,7 @@ bool HiderPlugin::Load(PluginId id, ISmmAPI* ismm, char* error, size_t maxlen, b
             {
                 defaultConfig << "{\n"
                                  "    \"identity_mode\": \"player\",\n"
+                                 "    \"auto_vote_for_managed_bots\": false,\n"
                                  "    \"fake_ping\": {\n"
                                  "        \"enabled\": true,\n"
                                  "        \"min\": 20,\n"

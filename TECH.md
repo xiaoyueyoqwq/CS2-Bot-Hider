@@ -95,6 +95,7 @@ Located in `/game/csgo/addons/BotHider/config.json`:
 ```json
 {
     "identity_mode": "player",
+    "auto_vote_for_managed_bots": false,
     "fake_ping": {
         "enabled": true,
         "min": 20,
@@ -103,7 +104,7 @@ Located in `/game/csgo/addons/BotHider/config.json`:
 }
 ```
 
-`player` is the default and enables the synthetic-player presentation. `bot` leaves the client/controller fake flags under Valve's native BotManager while BotHider continues to manage names, SteamIDs, and custom avatar presentation. `fake_ping.enabled` controls ping generation, and `min`/`max` are inclusive bounds for the final displayed value. The configuration is read when the Metamod plugin loads.
+`player` is the default and enables the synthetic-player presentation. `bot` leaves the client/controller fake flags under Valve's native BotManager while BotHider continues to manage names, SteamIDs, and custom avatar presentation. `auto_vote_for_managed_bots` defaults to `true` for backward compatibility; set it to `false` when using CS2 Vote Improver. `fake_ping.enabled` controls ping generation, and `min`/`max` are inclusive bounds for the final displayed value. The configuration is read when the Metamod and BotHiderImpl plugins load.
 
 ------------------------------------------------------------------------
 

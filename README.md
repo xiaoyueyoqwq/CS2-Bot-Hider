@@ -25,7 +25,7 @@
 2. Extract the archive and copy the `/addons/` folder into your server's `/game/csgo/` directory.
 3. Restart the server.
 
-The packaged `addons/BotHider/config.json` selects the identity mode and fake-ping behavior. Use `"player"` to keep BotHider's synthetic-player presentation, or use `"bot"` to retain Valve's native bot flags. Fake-ping values are constrained to the configured inclusive range. Missing settings use the packaged defaults.
+The packaged `addons/BotHider/config.json` selects the identity mode, automatic vote behavior, and fake-ping behavior. Use `"player"` to keep BotHider's synthetic-player presentation, or use `"bot"` to retain Valve's native bot flags. Set `"auto_vote_for_managed_bots": false` when using CS2 Vote Improver so Vote Improver is the only plugin that updates the native vote controller; the default is `true` for backward compatibility. Fake-ping values are constrained to the configured inclusive range. Missing settings use the packaged defaults.
 
 ------------------------------------------------------------------------
 
